@@ -67,6 +67,7 @@ class OBJECT_OT_add_positive_cube(bpy.types.Operator):
         mesh_data.from_pydata(verts, edges, faces)
         mesh_obj = bpy.data.objects.new("Positive Cube", mesh_data)
         bpy.context.collection.objects.link(mesh_obj)
+        bpy.context.view_layer.objects.active = mesh_obj
         mesh_obj.select_set(True)
         mesh_obj.matrix_world = bpy.context.scene.cursor.matrix
         return {'FINISHED'}
@@ -106,6 +107,7 @@ class OBJECT_OT_add_negative_cube(bpy.types.Operator):
         mesh_data.from_pydata(verts, edges, faces)
         mesh_obj = bpy.data.objects.new("Negative Cube", mesh_data)
         bpy.context.collection.objects.link(mesh_obj)
+        bpy.context.view_layer.objects.active = mesh_obj
         mesh_obj.select_set(True)
         mesh_obj.matrix_world = bpy.context.scene.cursor.matrix
         return {'FINISHED'}
