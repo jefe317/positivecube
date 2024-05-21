@@ -33,11 +33,11 @@ bl_info = {
 }
 
 
-class OBJECT_OT_add_positive_cube(bpy.types.Operator):
+class OBJECT_OT_positive_cube(bpy.types.Operator):
     """Adds a cube with its origin at the bottom left corner and exists""" \
     """ only in space positive to the 3D cursor"""
-    bl_idname = "mesh.add_positive_cube"
-    bl_label = "Add Positive Cube"
+    bl_idname = "mesh.positive_cube"
+    bl_label = "Positive Cube"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -73,11 +73,11 @@ class OBJECT_OT_add_positive_cube(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class OBJECT_OT_add_negative_cube(bpy.types.Operator):
+class OBJECT_OT_negative_cube(bpy.types.Operator):
     """Adds a cube with its origin at the top right corner and exists""" \
     """ only in space negative to the 3D cursor"""
-    bl_idname = "mesh.add_negative_cube"
-    bl_label = "Add Negative Cube"
+    bl_idname = "mesh.negative_cube"
+    bl_label = "Negative Cube"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -114,21 +114,21 @@ class OBJECT_OT_add_negative_cube(bpy.types.Operator):
 
 
 def menu_func(self, context):
-    self.layout.operator(OBJECT_OT_add_positive_cube.bl_idname,
+    self.layout.operator(OBJECT_OT_positive_cube.bl_idname,
                          icon='MESH_CUBE')
-    self.layout.operator(OBJECT_OT_add_negative_cube.bl_idname,
+    self.layout.operator(OBJECT_OT_negative_cube.bl_idname,
                          icon='CUBE')
 
 
 def register():
-    bpy.utils.register_class(OBJECT_OT_add_positive_cube)
-    bpy.utils.register_class(OBJECT_OT_add_negative_cube)
+    bpy.utils.register_class(OBJECT_OT_positive_cube)
+    bpy.utils.register_class(OBJECT_OT_negative_cube)
     bpy.types.VIEW3D_MT_mesh_add.append(menu_func)
 
 
 def unregister():
-    bpy.utils.unregister_class(OBJECT_OT_add_positive_cube)
-    bpy.utils.unregister_class(OBJECT_OT_add_negative_cube)
+    bpy.utils.unregister_class(OBJECT_OT_positive_cube)
+    bpy.utils.unregister_class(OBJECT_OT_negative_cube)
     bpy.types.VIEW3D_MT_mesh_add.remove(menu_func)
 
 
