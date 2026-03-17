@@ -20,115 +20,66 @@ import bpy
 # CHANGELOG
 # v 1.0 May 2024 - Positive Cube
 #   ☒ Initial Add-on, add positive and negative cube.
-
+# v 1.1 March 2026
+#   ☒ Simplified, condensed code
+#   ☒ Changed selection functionality to deselect all before adding geometry
 
 bl_info = {
     "name": "Add Positive Cube",
     "description": "Adds a cube with its origin at the corner.",
     "author": "Jeff Lange @jefftml",
-    "version": (1, 0),
+    "version": (1, 1),
     "blender": (2, 80, 0),
     "location": "View3D > Add > Mesh",
     "category": "Add Mesh",
 }
 
+FACES = [(3, 2, 1, 0), (0, 1, 5, 4), (1, 2, 6, 5),
+         (2, 3, 7, 6), (3, 0, 4, 7), (4, 5, 6, 7)]
 
-class OBJECT_OT_positive_cube(bpy.types.Operator):
-    """Adds a cube with its origin at the bottom left corner and exists""" \
-    """ only in space positive to the 3D cursor"""
-    bl_idname = "mesh.positive_cube"
-    bl_label = "Positive Cube"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        verts = [
-            (0, 0, 0),
-            (1, 0, 0),
-            (1, 1, 0),
-            (0, 1, 0),
-            (0, 0, 1),
-            (1, 0, 1),
-            (1, 1, 1),
-            (0, 1, 1)
-        ]
-
-        faces = [
-            (3, 2, 1, 0),
-            (0, 1, 5, 4),
-            (1, 2, 6, 5),
-            (2, 3, 7, 6),
-            (3, 0, 4, 7),
-            (4, 5, 6, 7)
-        ]
-
-        edges = []
-
-        mesh_data = bpy.data.meshes.new("positive_cube")
-        mesh_data.from_pydata(verts, edges, faces)
-        mesh_obj = bpy.data.objects.new("Positive Cube", mesh_data)
-        bpy.context.collection.objects.link(mesh_obj)
-        bpy.context.view_layer.objects.active = mesh_obj
-        mesh_obj.select_set(True)
-        mesh_obj.matrix_world = bpy.context.scene.cursor.matrix
-        return {'FINISHED'}
+VERTS = [(0, 0, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0),
+         (0, 0, 1), (1, 0, 1), (1, 1, 1), (0, 1, 1)]
 
 
-class OBJECT_OT_negative_cube(bpy.types.Operator):
-    """Adds a cube with its origin at the top right corner and exists""" \
-    """ only in space negative to the 3D cursor"""
-    bl_idname = "mesh.negative_cube"
-    bl_label = "Negative Cube"
-    bl_options = {'REGISTER', 'UNDO'}
+def add_corner_cube(context, s=1):
+    v = [(s * x, s * y, s * z) for x, y, z in VERTS]
+    faces = [f[::-1] for f in FACES] if s < 0 else FACES
+    mesh = bpy.data.meshes.new("cube")
+    mesh.from_pydata(v, [], faces)
+    obj = bpy.data.objects.new(
+        ("Positive" if s > 0 else "Negative") + " Cube", mesh)
+    context.collection.objects.link(obj)
+    bpy.ops.object.select_all(action='DESELECT')
+    context.view_layer.objects.active = obj
+    obj.select_set(True)
+    obj.matrix_world = context.scene.cursor.matrix
+    return {'FINISHED'}
 
-    def execute(self, context):
-        verts = [
-            (0, 0, 0),
-            (-1, 0, 0),
-            (-1, -1, 0),
-            (0, -1, 0),
-            (0, 0, -1),
-            (-1, 0, -1),
-            (-1, -1, -1),
-            (0, -1, -1)
-        ]
 
-        faces = [
-            (0, 1, 2, 3),
-            (4, 5, 1, 0),
-            (5, 6, 2, 1),
-            (6, 7, 3, 2),
-            (7, 4, 0, 3),
-            (7, 6, 5, 4)
-        ]
+def make_op(label, idname, s):
+    class Op(bpy.types.Operator):
+        bl_idname, bl_label, bl_options = idname, label, {'REGISTER', 'UNDO'}
+        def execute(self, ctx): return add_corner_cube(ctx, s)
+    Op.__name__ = idname.split('.')[1]
+    return Op
 
-        edges = []
 
-        mesh_data = bpy.data.meshes.new("negative_cube")
-        mesh_data.from_pydata(verts, edges, faces)
-        mesh_obj = bpy.data.objects.new("Negative Cube", mesh_data)
-        bpy.context.collection.objects.link(mesh_obj)
-        bpy.context.view_layer.objects.active = mesh_obj
-        mesh_obj.select_set(True)
-        mesh_obj.matrix_world = bpy.context.scene.cursor.matrix
-        return {'FINISHED'}
+CLASSES = [make_op("Positive Cube", "mesh.positive_cube", 1),
+           make_op("Negative Cube", "mesh.negative_cube", -1)]
 
 
 def menu_func(self, context):
-    self.layout.operator(OBJECT_OT_positive_cube.bl_idname,
-                         icon='MESH_CUBE')
-    self.layout.operator(OBJECT_OT_negative_cube.bl_idname,
-                         icon='CUBE')
+    self.layout.operator(CLASSES[0].bl_idname, icon='MESH_CUBE')
+    self.layout.operator(CLASSES[1].bl_idname, icon='CUBE')
 
 
 def register():
-    bpy.utils.register_class(OBJECT_OT_positive_cube)
-    bpy.utils.register_class(OBJECT_OT_negative_cube)
+    [bpy.utils.register_class(c) for c in CLASSES]
     bpy.types.VIEW3D_MT_mesh_add.append(menu_func)
 
 
 def unregister():
-    bpy.utils.unregister_class(OBJECT_OT_positive_cube)
-    bpy.utils.unregister_class(OBJECT_OT_negative_cube)
+    [bpy.utils.unregister_class(c) for c in CLASSES]
     bpy.types.VIEW3D_MT_mesh_add.remove(menu_func)
 
 
